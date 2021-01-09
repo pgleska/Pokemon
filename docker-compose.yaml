@@ -1,0 +1,37 @@
+version: '3'
+services:
+  db:
+    image: mysql:latest
+    restart: always
+    hostname: pokemon-db
+    container_name: pokemon-db
+    volumes:
+      - /usr/share/zoneinfo/:/usr/share/zoneinfo/:ro
+      - ./docker/db/pokemon.sql:/docker-entrypoint-initdb.d/pokemon.sql:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysecretpassword
+      - MYSQL_DATABASE=pokemon
+      - MYSQL_ADMIN=admin
+      - MYSQL_PASSWORD=mysecretpassword 
+    networks:
+      - pokemon  
+
+  app:
+    build: ./docker/app
+    restart: always
+    hostname: pokemon-app
+    container_name: pokemon-app
+    volumes:
+      - ./docker/app/pokemon.jar:/opt/pokemon/pokemon.jar:ro
+    ports:
+      - 8001:8001
+      - 8180:8080  
+    depends_on:
+      - db
+    environment:    
+      - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8001
+    networks:
+      - pokemon  
+      
+networks:
+  pokemon:
